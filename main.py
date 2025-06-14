@@ -1,3 +1,5 @@
+st.write("Ứng dụng đã chạy tới đây rồi!")
+
 import streamlit as st
 
 def main():
