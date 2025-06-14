@@ -1,71 +1,42 @@
-st.write("Ứng dụng đã chạy tới đây rồi!")
-
 import streamlit as st
-
-def main():
-    st.title("Game Pikachu")
-    st.write("Đây là giao diện thử nghiệm Pikachu!")
-    # thêm code game tại đây...
-
-if __name__ == "__main__":
-    main()
-
-import pygame
 import random
 
-# Cấu hình ban đầu
-pygame.init()
-WIDTH, HEIGHT = 640, 480
-ROWS, COLS = 6, 8
-TILE_SIZE = 60
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pikachu Đơn Giản")
-font = pygame.font.SysFont(None, 36)
+st.set_page_config(page_title="Pikachu Game", layout="centered")
 
-# Tạo bảng với các cặp ngẫu nhiên
-def create_board():
-    icons = [i for i in range((ROWS * COLS) // 2)] * 2
-    random.shuffle(icons)
-    board = [icons[i * COLS:(i + 1) * COLS] for i in range(ROWS)]
-    return board
+st.title("🔷 Pikachu Matching Game")
 
-board = create_board()
-selected = []
-running = True
+# Tải ảnh Pokémon
+image_files = ["pikachu.png", "bulbasaur.png", "charmander.png", "squirtle.png"]
+image_files *= 2  # tạo cặp
+random.shuffle(image_files)
 
-def draw_board():
-    screen.fill((255, 255, 255))
-    for i in range(ROWS):
-        for j in range(COLS):
-            val = board[i][j]
-            rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
-            pygame.draw.rect(screen, (200, 200, 255), rect)
-            pygame.draw.rect(screen, (0, 0, 0), rect, 2)
-            if val != -1:
-                img = font.render(str(val), True, (0, 0, 0))
-                screen.blit(img, (j*TILE_SIZE + 20, i*TILE_SIZE + 15))
+# Trạng thái session
+if "revealed" not in st.session_state:
+    st.session_state.revealed = [False] * len(image_files)
+if "clicked" not in st.session_state:
+    st.session_state.clicked = []
 
-def check_match():
-    global selected
-    if len(selected) == 2:
-        (x1, y1), (x2, y2) = selected
-        if board[y1][x1] == board[y2][x2] and (x1, y1) != (x2, y2):
-            board[y1][x1] = board[y2][x2] = -1
-        selected = []
+def reset_game():
+    random.shuffle(image_files)
+    st.session_state.revealed = [False] * len(image_files)
+    st.session_state.clicked = []
 
-# Game loop
-while running:
-    draw_board()
-    pygame.display.flip()
-    check_match()
-    
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
-            if board[y][x] != -1:
-                selected.append((x, y))
-pygame.quit()
+st.button("🔄 Chơi lại", on_click=reset_game)
 
+cols = st.columns(4)
+for i in range(len(image_files)):
+    with cols[i % 4]:
+        if st.session_state.revealed[i]:
+            st.image(f"images/{image_files[i]}", width=100)
+        else:
+            if st.button("❓", key=i):
+                st.session_state.revealed[i] = True
+                st.session_state.clicked.append(i)
+
+# So khớp
+if len(st.session_state.clicked) == 2:
+    idx1, idx2 = st.session_state.clicked
+    if image_files[idx1] != image_files[idx2]:
+        st.session_state.revealed[idx1] = False
+        st.session_state.revealed[idx2] = False
+    st.session_state.clicked = []
