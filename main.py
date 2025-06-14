@@ -1,3 +1,13 @@
+import streamlit as st
+
+def main():
+    st.title("Game Pikachu")
+    st.write("Đây là giao diện thử nghiệm Pikachu!")
+    # thêm code game tại đây...
+
+if __name__ == "__main__":
+    main()
+
 import pygame
 import random
 
